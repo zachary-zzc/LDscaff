@@ -89,10 +89,10 @@ cd ..
 
 ```bash
 # Make sure the CLI script is executable
-chmod +x pipeline/cli.py
+chmod +x cli.py
 
 # Run the help command
-./pipeline/cli.py --help
+cli.py --help
 ```
 
 ## Usage
@@ -102,7 +102,7 @@ chmod +x pipeline/cli.py
 To run the complete LDscaff pipeline on your data:
 
 ```bash
-./pipeline/cli.py run \
+cli.py run \
   --vcf your_data.vcf \
   --input-fasta scaffolds.fasta \
   --output results_directory \
@@ -127,34 +127,34 @@ For more control, you can run each step of the pipeline separately:
 
 ```bash
 # 1. Extract SNP markers from VCF
-./pipeline/cli.py extract \
+cli.py extract \
   --vcf your_data.vcf \
   --output marker_data \
   --marker-count 100 \
   --sample-list samples.txt
 
 # 2. Prepare sample data for matching
-./pipeline/cli.py prepare \
+cli.py prepare \
   --marker-dir marker_data \
   --samples samples.txt \
   --output prepared_data
 
 # 3. Run matching algorithm
-./pipeline/cli.py match \
+cli.py match \
   --sample-list prepared_data/sample.list \
   --samples 100 \
   --scaffolds 500 \
   --output match_results.txt
 
 # 4. Find scaffold paths
-./pipeline/cli.py paths \
+cli.py paths \
   --match-result match_results.txt \
   --scaffolds 500 \
   --threshold 0.2 \
   --output path_results.txt
 
 # 5. Assemble final scaffolds
-./pipeline/cli.py assemble \
+cli.py assemble \
   --paths path_results.txt \
   --input-fasta scaffolds.fasta \
   --output-fasta improved_assembly.fasta
@@ -167,7 +167,7 @@ For more control, you can run each step of the pipeline separately:
 Run the complete LDscaff pipeline.
 
 ```
-./pipeline/cli.py run [options]
+cli.py run [options]
 ```
 
 **Required arguments:**
@@ -189,7 +189,7 @@ Run the complete LDscaff pipeline.
 Extract SNP markers from a VCF file.
 
 ```
-./pipeline/cli.py extract [options]
+cli.py extract [options]
 ```
 
 **Required arguments:**
@@ -207,7 +207,7 @@ Extract SNP markers from a VCF file.
 Prepare sample data for the matching program.
 
 ```
-./pipeline/cli.py prepare [options]
+cli.py prepare [options]
 ```
 
 **Required arguments:**
@@ -223,7 +223,7 @@ Prepare sample data for the matching program.
 Run the maximum weight matching algorithm.
 
 ```
-./pipeline/cli.py match [options]
+cli.py match [options]
 ```
 
 **Required arguments:**
@@ -243,7 +243,7 @@ Run the maximum weight matching algorithm.
 Find scaffold paths from matching results.
 
 ```
-./pipeline/cli.py paths [options]
+cli.py paths [options]
 ```
 
 **Required arguments:**
@@ -257,7 +257,7 @@ Find scaffold paths from matching results.
 Assemble scaffolds based on paths.
 
 ```
-./pipeline/cli.py assemble [options]
+cli.py assemble [options]
 ```
 
 **Required arguments:**
@@ -314,7 +314,7 @@ GCTAGCTAGCTAGCTAGCTA...
 Assembling a draft genome with default parameters:
 
 ```bash
-./pipeline/cli.py run \
+cli.py run \
   --vcf population.vcf \
   --input-fasta draft.fasta \
   --output ldscaff_results \
@@ -326,7 +326,7 @@ Assembling a draft genome with default parameters:
 Using custom parameters for better results:
 
 ```bash
-./pipeline/cli.py run \
+cli.py run \
   --vcf population.vcf \
   --input-fasta draft.fasta \
   --output ldscaff_results \
@@ -343,7 +343,7 @@ Running the pipeline steps individually to monitor progress:
 
 ```bash
 # Step 1: Extract markers
-./pipeline/cli.py extract \
+cli.py extract \
   --vcf population.vcf \
   --output markers \
   --marker-count 100 \
@@ -353,13 +353,13 @@ Running the pipeline steps individually to monitor progress:
 ls markers
 
 # Step 2: Prepare samples
-./pipeline/cli.py prepare \
+cli.py prepare \
   --marker-dir markers \
   --samples samples.txt \
   --output prepared
 
 # Step 3: Run matching
-./pipeline/cli.py match \
+cli.py match \
   --sample-list prepared/sample.list \
   --samples 96 \
   --scaffolds 1242 \
@@ -369,7 +369,7 @@ ls markers
 head matching.out
 
 # Step 4: Find paths
-./pipeline/cli.py paths \
+cli.py paths \
   --match-result matching.out \
   --scaffolds 1242 \
   --threshold 0.2 \
@@ -379,7 +379,7 @@ head matching.out
 cat paths.out
 
 # Step 5: Assemble final scaffolds
-./pipeline/cli.py assemble \
+cli.py assemble \
   --paths paths.out \
   --input-fasta draft.fasta \
   --output-fasta improved.fasta
