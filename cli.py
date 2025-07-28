@@ -20,8 +20,7 @@ logging.basicConfig(
 logger = logging.getLogger('LDscaff')
 
 # Path to the C++ matching executable
-MATCHING_PROGRAM = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "matching")
-print(MATCHING_PROGRAM)
+MATCHING_PROGRAM = "/home/zczhao/projects/LDscaff/LDscaff/src/matching"
 
 def run_command(cmd, description=None, capture_output=True):
     """Run a command and log its output"""
@@ -29,6 +28,8 @@ def run_command(cmd, description=None, capture_output=True):
         logger.info(description)
 
     logger.debug(f"Command: {' '.join(cmd)}")
+
+    logger.info(' '.join(cmd))
 
     if capture_output:
         process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, universal_newlines=True)
@@ -51,12 +52,84 @@ def ensure_directory(directory):
     Path(directory).mkdir(parents=True, exist_ok=True)
     return directory
 
+def ensure_vcf_index(vcf_filename):
+    """
+    Check if the VCF file has a Tabix index (.tbi) and create one if it doesn't exist.
+
+    Args:
+        vcf_filename (str): Path to the VCF file
+
+    Returns:
+        bool: True if index exists or was created successfully, False otherwise
+    """
+    import os
+    import subprocess
+    import pysam
+
+    # Check if index file exists
+    tbi_filename = f"{vcf_filename}.tbi"
+    if os.path.exists(tbi_filename):
+        print(f"Index file {tbi_filename} found.")
+        return True
+
+    # Check if VCF is bgzipped
+    is_bgzipped = False
+    try:
+        with open(vcf_filename, 'rb') as f:
+            # Check for gzip magic number
+            is_bgzipped = f.read(2) == b'\x1f\x8b'
+    except Exception as e:
+        print(f"Error checking if file is bgzipped: {e}")
+        return False
+
+    # If not bgzipped, create a bgzipped version
+    bgzipped_filename = vcf_filename
+    if not is_bgzipped:
+        print(f"VCF file {vcf_filename} is not bgzipped. Creating bgzipped version...")
+        bgzipped_filename = f"{vcf_filename}.gz"
+        try:
+            result = subprocess.run(
+                ["bgzip", "-c", vcf_filename],
+                stdout=open(bgzipped_filename, 'wb'),
+                stderr=subprocess.PIPE
+            )
+            if result.returncode != 0:
+                print(f"Error bgzipping VCF file: {result.stderr.decode()}")
+                print("Please install bgzip (part of tabix/htslib) or manually bgzip your VCF file.")
+                return False
+            print(f"Created bgzipped file: {bgzipped_filename}")
+        except FileNotFoundError:
+            print("bgzip command not found. Please install bgzip (part of tabix/htslib).")
+            print("You can install it with 'conda install -c bioconda tabix'")
+            return False
+
+    # Create the tabix index
+    print(f"Creating tabix index for {bgzipped_filename}...")
+    try:
+        pysam.tabix_index(bgzipped_filename, preset="vcf")
+        print(f"Successfully created index file: {bgzipped_filename}.tbi")
+
+        # If we created a new bgzipped file, update the original filename
+        if bgzipped_filename != vcf_filename:
+            print(f"Please use the bgzipped file for future operations: {bgzipped_filename}")
+
+        return True
+    except Exception as e:
+        print(f"Error creating tabix index: {e}")
+        print("Please install tabix (part of htslib) or manually index your VCF file with:")
+        print(f"tabix -p vcf {bgzipped_filename}")
+        return False
+
 def extract_snp_markers(vcf_file, output_dir, scaffold_names, marker_count=100, minor_ratio=0.0):
     """Extract SNP markers from VCF file for each scaffold"""
     logger.info(f"Extracting SNP markers from {vcf_file}")
 
     # Create output directory
     ensure_directory(output_dir)
+
+    # Ensure the VCF file is indexed
+    if not ensure_vcf_index(vcf_file):
+        raise ValueError(f"Failed to ensure index for VCF file: {vcf_file}")
 
     # Open VCF reader
     vcf_reader = vcf.Reader(filename=vcf_file)
