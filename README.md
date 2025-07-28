@@ -85,8 +85,9 @@ make
 cd ..
 ```
 
-3. Test the installation:
+3. Config matching file in cli.py and test the installation:
 
+Set your own path in cli.py for parameter "MATCHING_PROGRAM"
 ```bash
 # Make sure the CLI script is executable
 chmod +x cli.py
